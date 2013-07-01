@@ -37,32 +37,30 @@ class pyFree():
 
 		version = str(self.api_version.find('.'))
 		self._baseUrl = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
-		print self._baseUrl
 
 	@property
 	def device_name(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['device_name']
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['device_name']
 
 	@property
 	def uid(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['uid']
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['uid']
 
 	@property
 	def api_version(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['api_version']
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['api_version']
 
 	@property
 	def device_type(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['device_type']
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['device_type']
 
 	def askAutorization(self, app_id, app_name, app_version, device_name):
-		request = json.dumps({"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name})
-		getAppToken = requests.post(self._baseUrl + LOGIN_AUTH, data=request)
-		getAppToken = getAppToken.json()
+		parameter = {"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name}
+		getAppToken = self._requestToFreebox(self._baseUrl + LOGIN_AUTH, 'POST', parameter)
 
 		if (getAppToken["success"] is not True):
 			return 1
@@ -70,8 +68,7 @@ class pyFree():
 		trackId = str(getAppToken["result"]["track_id"])
 
 		while True:
-			authorization = requests.get(self._baseUrl + LOGIN_AUTH + trackId, data=request)
-			authorization = authorization.json()
+			authorization = self._requestToFreebox(self._baseUrl + LOGIN_AUTH + trackId, 'GET')
 			if not authorization["result"]["status"] == 'pending':
 				break
 			time.sleep(1)
@@ -86,23 +83,18 @@ class pyFree():
 		return 0
 
 	def login(self, app_id):
-		loginResponse = requests.get(self._baseUrl + LOGIN)
-		loginResponse = loginResponse.json()
+		loginResponse = self._requestToFreebox(self._baseUrl + LOGIN, 'GET')
 
 		if loginResponse["success"] is not True:
 			return 1
 
 		challenge = loginResponse["result"]["challenge"]
-		print "challenge = " + challenge
-		print "appTocken = " + self._appTocken
 
 		passwordBin = hmac.new(self._appTocken, challenge, sha1)
 		password  = passwordBin.hexdigest()
-		print "password = " + password
 
-		loginRequest = json.dumps({"app_id": app_id, "password": password})
-		loginResponse = requests.post(self._baseUrl + LOGIN_SESSION, data=loginRequest)
-		loginResponse = loginResponse.json()
+		parameter = {"app_id": app_id, "password": password}
+		loginResponse = self._requestToFreebox(self._baseUrl + LOGIN_SESSION, 'POST', parameter)
 
 		if loginResponse["success"] is True:
 			self._sessionTocken = loginResponse["result"]["session_token"]
@@ -114,11 +106,21 @@ class pyFree():
 
 	def getCallList(self):
 		header = {'X-Fbx-App-Auth': self._sessionTocken}
-		callResponse = requests.get(self._baseUrl + CALL_LOG, headers=header)
-		callResponse = callResponse.json()
-
-		print callResponse
+		callResponse = self._requestToFreebox(self._baseUrl + CALL_LOG, 'GET', header=header)
 		return callResponse
+
+	def _requestToFreebox(self, url, requestType, parameters=None, header=None):
+		# print '----------------------------------------------'
+		print url
+		if (requestType == 'GET'):
+			response = requests.get(url, headers=header)
+		if (requestType == 'POST'):
+			parameters = json.dumps(parameters)
+			response = requests.post(url, data=parameters, headers=header)
+
+		# print response.json()
+		# print '----------------------------------------------'
+		return response.json()
 
 
 def main():
@@ -136,7 +138,7 @@ def main():
 	if freebox.login("1") is not 0:
 		print "Login failed"
 
-	freebox.getCallList()
+	print freebox.getCallList()
 
 
 if __name__ == '__main__':

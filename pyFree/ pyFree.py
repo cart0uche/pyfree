@@ -38,27 +38,12 @@ class pyFree():
 		version = str(self.api_version.find('.'))
 		self._baseUrl = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
 
-	@property
-	def device_name(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['device_name']
-
-	@property
-	def uid(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['uid']
-
-	@property
-	def api_version(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['api_version']
-
-	@property
-	def device_type(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['device_type']
-
 	def askAutorization(self, app_id, app_name, app_version, device_name):
+		"""
+			This must be call the first time the application is lauched.
+			An authorization has to be done directly on the Freebox.
+			See http://dev.freebox.fr/sdk/os/login/
+		"""
 		parameter = {"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name}
 		getAppToken = self._requestToFreebox(self._baseUrl + LOGIN_AUTH, 'POST', parameter)
 
@@ -83,6 +68,9 @@ class pyFree():
 		return 0
 
 	def login(self, app_id):
+		"""
+			This function has to be called after the authorization has been granted by the function askAutorization.
+		"""
 		loginResponse = self._requestToFreebox(self._baseUrl + LOGIN, 'GET')
 
 		if loginResponse["success"] is not True:
@@ -105,13 +93,16 @@ class pyFree():
 		return 0
 
 	def getCallList(self):
+		"""
+			Access the Freebox call logs.
+			See http://dev.freebox.fr/sdk/os/call/
+		"""
 		header = {'X-Fbx-App-Auth': self._sessionTocken}
 		callResponse = self._requestToFreebox(self._baseUrl + CALL_LOG, 'GET', header=header)
 		return callResponse
 
 	def _requestToFreebox(self, url, requestType, parameters=None, header=None):
-		# print '----------------------------------------------'
-		print url
+		# print url
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header)
 		if (requestType == 'POST'):
@@ -119,27 +110,45 @@ class pyFree():
 			response = requests.post(url, data=parameters, headers=header)
 
 		# print response.json()
-		# print '----------------------------------------------'
 		return response.json()
 
+	@property
+	def device_name(self):
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['device_name']
 
-def main():
-	freebox = pyFree()
-	print "====================================="
-	print "Device name = " + freebox.device_name
-	print "uid         = " + freebox.uid
-	print "api_version = " + freebox.api_version
-	print "device_type = " + freebox.device_type
-	print "====================================="
+	@property
+	def uid(self):
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['uid']
 
-	#if freebox.askAutorization("1", "appliTest", "0.1", "theBeast") is not 0:
-		#print "Authorization failed"
+	@property
+	def api_version(self):
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['api_version']
 
-	if freebox.login("1") is not 0:
-		print "Login failed"
+	@property
+	def device_type(self):
+		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		return version['device_type']
 
-	print freebox.getCallList()
+# def main():
+# 	freebox = pyFree()
+# 	print "====================================="
+# 	print "Device name = " + freebox.device_name
+# 	print "uid         = " + freebox.uid
+# 	print "api_version = " + freebox.api_version
+# 	print "device_type = " + freebox.device_type
+# 	print "====================================="
+
+# 	if freebox.askAutorization("1", "appliTest", "0.1", "theBeast") is not 0:
+# 		print "Authorization failed"
+
+# 	if freebox.login("1") is not 0:
+# 		print "Login failed"
+
+# 	print freebox.getCallList()
 
 
-if __name__ == '__main__':
-	main()
+# if __name__ == '__main__':
+# 	main()

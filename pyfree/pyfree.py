@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# pyFree!
+# pyfree!
 
 import os
 import time
@@ -23,7 +23,7 @@ LOGIN_SESSION  = 'login/session/'
 CALL_LOG       = 'call/log/'
 
 
-class pyFree():
+class freebox():
 
 	def __init__(self):
 		if os.path.isfile(APP_TOKEN_FILE):
@@ -131,24 +131,3 @@ class pyFree():
 	def device_type(self):
 		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
 		return version['device_type']
-
-# def main():
-# 	freebox = pyFree()
-# 	print "====================================="
-# 	print "Device name = " + freebox.device_name
-# 	print "uid         = " + freebox.uid
-# 	print "api_version = " + freebox.api_version
-# 	print "device_type = " + freebox.device_type
-# 	print "====================================="
-
-# 	if freebox.ask_autorization("1", "appliTest", "0.1", "theBeast") is not 0:
-# 		print "Authorization failed"
-
-# 	if freebox.login("1") is not 0:
-# 		print "Login failed"
-
-# 	print freebox.get_callList()
-
-
-# if __name__ == '__main__':
-# 	main()

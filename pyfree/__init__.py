@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pyfree import freebox
+
 """
     Unofficial API that implements access to Freebox Server "Révolution" (http://dev.freebox.fr/sdk/os/)
 """

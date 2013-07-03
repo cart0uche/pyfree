@@ -38,7 +38,7 @@ class pyFree():
 		version = str(self.api_version.find('.'))
 		self._baseUrl = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
 
-	def askAutorization(self, app_id, app_name, app_version, device_name):
+	def ask_autorization(self, app_id, app_name, app_version, device_name):
 		"""
 			This must be call the first time the application is lauched.
 			An authorization has to be done directly on the Freebox.
@@ -92,7 +92,7 @@ class pyFree():
 
 		return 0
 
-	def getCallList(self):
+	def get_callList(self):
 		"""
 			Access the Freebox call logs.
 			See http://dev.freebox.fr/sdk/os/call/
@@ -141,13 +141,13 @@ class pyFree():
 # 	print "device_type = " + freebox.device_type
 # 	print "====================================="
 
-# 	if freebox.askAutorization("1", "appliTest", "0.1", "theBeast") is not 0:
+# 	if freebox.ask_autorization("1", "appliTest", "0.1", "theBeast") is not 0:
 # 		print "Authorization failed"
 
 # 	if freebox.login("1") is not 0:
 # 		print "Login failed"
 
-# 	print freebox.getCallList()
+# 	print freebox.get_callList()
 
 
 # if __name__ == '__main__':

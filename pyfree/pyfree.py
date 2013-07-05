@@ -27,16 +27,22 @@ class freebox():
 
 	def __init__(self):
 		if os.path.isfile(APP_TOKEN_FILE):
-			fileAppTocken = open(APP_TOKEN_FILE, 'r')
-			self._appTocken = fileAppTocken.read()
-			print "appTocken = " + self._appTocken
-			fileAppTocken.close()
-			self._AuthorizationGranted = True
+			file_app_tocken = open(APP_TOKEN_FILE, 'r')
+			self._app_tocken = file_app_tocken.read()
+			print "appTocken = " + self._app_tocken
+			file_app_tocken.close()
+			self._authorization_granted = True
 		else:
-			self._AuthorizationGranted = False
+			self._authorization_granted = False
 
 		version = str(self.api_version.find('.'))
-		self._baseUrl = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+		self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+
+	def is_authorization_granted(self):
+		if os.path.isfile(APP_TOKEN_FILE):
+			return True
+		else:
+			return False
 
 	def ask_autorization(self, app_id, app_name, app_version, device_name):
 		"""
@@ -45,15 +51,15 @@ class freebox():
 			See http://dev.freebox.fr/sdk/os/login/
 		"""
 		parameter = {"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name}
-		getAppToken = self._requestToFreebox(self._baseUrl + LOGIN_AUTH, 'POST', parameter)
+		autorization_reponse = self._request_to_freebox(self._base_url + LOGIN_AUTH, 'POST', parameter)
 
-		if (getAppToken["success"] is not True):
+		if (autorization_reponse["success"] is not True):
 			return 1
 
-		trackId = str(getAppToken["result"]["track_id"])
+		track_id = str(autorization_reponse["result"]["track_id"])
 
 		while True:
-			authorization = self._requestToFreebox(self._baseUrl + LOGIN_AUTH + trackId, 'GET')
+			authorization = self._request_to_freebox(self._base_url + LOGIN_AUTH + track_id, 'GET')
 			if not authorization["result"]["status"] == 'pending':
 				break
 			time.sleep(1)
@@ -61,47 +67,47 @@ class freebox():
 		if not authorization["result"]["status"] == "granted":
 			return 1
 
-		appTokenFile = open(APP_TOKEN_FILE, 'w')
-		appTokenFile.write(getAppToken["result"]["app_token"])
-		appTokenFile.close()
-		self._appTocken = getAppToken["result"]["app_token"]
+		file_app_tocken = open(APP_TOKEN_FILE, 'w')
+		file_app_tocken.write(autorization_reponse["result"]["app_token"])
+		file_app_tocken.close()
+		self._appTocken = autorization_reponse["result"]["app_token"]
 		return 0
 
 	def login(self, app_id):
 		"""
 			This function has to be called after the authorization has been granted by the function askAutorization.
 		"""
-		loginResponse = self._requestToFreebox(self._baseUrl + LOGIN, 'GET')
+		login_response = self._request_to_freebox(self._base_url + LOGIN, 'GET')
 
-		if loginResponse["success"] is not True:
+		if login_response["success"] is not True:
 			return 1
 
-		challenge = loginResponse["result"]["challenge"]
+		challenge = login_response["result"]["challenge"]
 
-		passwordBin = hmac.new(self._appTocken, challenge, sha1)
+		passwordBin = hmac.new(self._app_tocken, challenge, sha1)
 		password  = passwordBin.hexdigest()
 
 		parameter = {"app_id": app_id, "password": password}
-		loginResponse = self._requestToFreebox(self._baseUrl + LOGIN_SESSION, 'POST', parameter)
+		login_response = self._request_to_freebox(self._base_url + LOGIN_SESSION, 'POST', parameter)
 
-		if loginResponse["success"] is True:
-			self._sessionTocken = loginResponse["result"]["session_token"]
+		if login_response["success"] is True:
+			self._session_tocken = login_response["result"]["session_token"]
 		else:
-			print loginResponse["msg"] + " : " + loginResponse["error_code"]
+			print login_response["msg"] + " : " + login_response["error_code"]
 			return 1
 
 		return 0
 
-	def get_callList(self):
+	def get_call_list(self):
 		"""
 			Access the Freebox call logs.
 			See http://dev.freebox.fr/sdk/os/call/
 		"""
-		header = {'X-Fbx-App-Auth': self._sessionTocken}
-		callResponse = self._requestToFreebox(self._baseUrl + CALL_LOG, 'GET', header=header)
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		callResponse = self._request_to_freebox(self._base_url + CALL_LOG, 'GET', header=header)
 		return callResponse
 
-	def _requestToFreebox(self, url, requestType, parameters=None, header=None):
+	def _request_to_freebox(self, url, requestType, parameters=None, header=None):
 		# print url
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header)
@@ -114,20 +120,20 @@ class freebox():
 
 	@property
 	def device_name(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
 		return version['device_name']
 
 	@property
 	def uid(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
 		return version['uid']
 
 	@property
 	def api_version(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
 		return version['api_version']
 
 	@property
 	def device_type(self):
-		version = self._requestToFreebox(FREEBOX_URL + API_VERSION, 'GET')
+		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
 		return version['device_type']

@@ -17,14 +17,16 @@ def main():
 		print "Authorization already granted"
 	else:
 		print 'Asking authorisation ...'
-		if fb.ask_autorization("1", "appliTest", "0.1", "theBeast") is not 0:
+		if fb.ask_authorization("1", "appliTest", "0.1", "theBeast") is not 0:
 			print "Authorization failed"
+			exit()
 		else:
 			print "Authorization granted"
 
 	# Login
 	if fb.login("1") is not 0:
 		print "Login failed"
+		exit()
 	else:
 		print "Login success"
 

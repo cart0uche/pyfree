@@ -44,19 +44,19 @@ class freebox():
 		else:
 			return False
 
-	def ask_autorization(self, app_id, app_name, app_version, device_name):
+	def ask_authorization(self, app_id, app_name, app_version, device_name):
 		"""
 			This must be call the first time the application is lauched.
 			An authorization has to be done directly on the Freebox.
 			See http://dev.freebox.fr/sdk/os/login/
 		"""
 		parameter = {"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name}
-		autorization_reponse = self._request_to_freebox(self._base_url + LOGIN_AUTH, 'POST', parameter)
+		authorization_reponse = self._request_to_freebox(self._base_url + LOGIN_AUTH, 'POST', parameter)
 
-		if (autorization_reponse["success"] is not True):
+		if (authorization_reponse["success"] is not True):
 			return 1
 
-		track_id = str(autorization_reponse["result"]["track_id"])
+		track_id = str(authorization_reponse["result"]["track_id"])
 
 		while True:
 			authorization = self._request_to_freebox(self._base_url + LOGIN_AUTH + track_id, 'GET')
@@ -68,14 +68,14 @@ class freebox():
 			return 1
 
 		file_app_tocken = open(APP_TOKEN_FILE, 'w')
-		file_app_tocken.write(autorization_reponse["result"]["app_token"])
+		file_app_tocken.write(authorization_reponse["result"]["app_token"])
 		file_app_tocken.close()
-		self._appTocken = autorization_reponse["result"]["app_token"]
+		self._app_tocken = str(authorization_reponse["result"]["app_token"])
 		return 0
 
 	def login(self, app_id):
 		"""
-			This function has to be called after the authorization has been granted by the function askAutorization.
+			This function has to be called after the authorization has been granted by the function ask_authorization.
 		"""
 		login_response = self._request_to_freebox(self._base_url + LOGIN, 'GET')
 
@@ -84,8 +84,8 @@ class freebox():
 
 		challenge = login_response["result"]["challenge"]
 
-		passwordBin = hmac.new(self._app_tocken, challenge, sha1)
-		password  = passwordBin.hexdigest()
+		password_bin = hmac.new(self._app_tocken, challenge, sha1)
+		password  = password_bin.hexdigest()
 
 		parameter = {"app_id": app_id, "password": password}
 		login_response = self._request_to_freebox(self._base_url + LOGIN_SESSION, 'POST', parameter)

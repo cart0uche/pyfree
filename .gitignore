@@ -1,3 +1,6 @@
+/test/.app_token
+/include/python2.7
+/local/
 *.py[cod]
 
 # C extensions

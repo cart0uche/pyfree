@@ -20,7 +20,11 @@ LOGIN          = 'login/'
 LOGIN_AUTH     = 'login/authorize/'
 LOGIN_SESSION  = 'login/session/'
 
+CONTACT        = 'contact/'
+
 CALL_LOG       = 'call/log/'
+
+LCD            = 'lcd/config/'
 
 
 class freebox():
@@ -39,6 +43,9 @@ class freebox():
 		self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
 
 	def is_authorization_granted(self):
+		"""
+			Return True if an authorization has already been granted on the freebox
+		"""
 		if os.path.isfile(APP_TOKEN_FILE):
 			return True
 		else:
@@ -104,18 +111,51 @@ class freebox():
 			See http://dev.freebox.fr/sdk/os/call/
 		"""
 		header = {'X-Fbx-App-Auth': self._session_tocken}
-		callResponse = self._request_to_freebox(self._base_url + CALL_LOG, 'GET', header=header)
-		return callResponse
+		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET', header=header)
+		return call_list
+
+	################################# CONTACT #################################
+	def get_contact_list(self):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		parameter = {"start": 1, "limit": 4, "group_id": 1}
+		contact_list = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter, header=header)
+		return contact_list
+
+	def get_contact(self, contact_id):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET', header=header)
+		return contact
+
+	def create_contact(self, display_name=None, first_name=None, last_name=None):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		parameter = {'display_name': display_name, 'first_name': first_name, 'last_name': last_name}
+		create_contact_response = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter, header=header)
+		return create_contact_response
+
+	def delete_contact(self, contact_id):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		delete_contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET', header=header)
+		return delete_contact
+	###########################################################################
+
+	################################# LCD #####################################
+	def get_lcd_config(self):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		lcd_config = self._request_to_freebox(self._base_url + LCD, 'GET', header=header)
+		return lcd_config
+
+	def update_lcd_config(self, brightness=None, orientation=None, orientation_forced=None):
+		header = {'X-Fbx-App-Auth': self._session_tocken}
+		parameter = {'brightness': brightness, 'orientation': orientation, 'orientation_forced': orientation_forced}
+		update_lcd_config_response = self._request_to_freebox(self._base_url + LCD, 'POST', parameters=parameter, header=header)
+		return update_lcd_config_response
 
 	def _request_to_freebox(self, url, requestType, parameters=None, header=None):
-		# print url
 		if (requestType == 'GET'):
-			response = requests.get(url, headers=header)
+			response = requests.get(url, data=parameters, headers=header)
 		if (requestType == 'POST'):
 			parameters = json.dumps(parameters)
 			response = requests.post(url, data=parameters, headers=header)
-
-		# print response.json()
 		return response.json()
 
 	@property

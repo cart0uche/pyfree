@@ -148,12 +148,11 @@ class freebox():
 	def _request_to_freebox(self, url, requestType, parameters=None):
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
-			response = requests.get(url, headers=header)
+			response = requests.get(url, headers=header).json()
 		if (requestType == 'POST'):
 			parameters = json.dumps(parameters)
-			response = requests.post(url, data=parameters, headers=header)
+			response = requests.post(url, data=parameters, headers=header).json()
 
-		response = response.json()
 		if response["success"] is False:
 			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
 

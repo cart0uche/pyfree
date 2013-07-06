@@ -11,30 +11,30 @@ def main():
 	print 'api_version = ' + fb.api_version
 	print 'device_type = ' + fb.device_type
 	print 'uid         = ' + fb.uid
-	print "====================================="
+	print '====================================='
 
 	# Authorization
 	if fb.is_authorization_granted():
-		print "Authorization already granted"
+		print 'Authorization already granted'
 	else:
 		print 'Asking authorisation ...'
-		if fb.ask_authorization("1", "appliTest", "0.1", "theBeast") is not 0:
-			print "Authorization failed"
-			exit()
+		if fb.ask_authorization('1', 'appliTest', '0.1', 'theBeast') is not None:
+			print 'Authorization granted'
 		else:
-			print "Authorization granted"
+			print 'Authorization failed'
+			exit()
 
 	# Login
-	if fb.login("1") is not 0:
-		print "Login failed"
-		exit()
+	if fb.login("1"):
+		print 'Login successful'
 	else:
-		print "Login success"
+		print 'Login faild'
+		exit()
 
 	# Call list
-	call_list = fb.get_call_list()
-	print "Call list:"
-	print call_list
+	# call_list = fb.get_call_list()
+	# print "Call list:"
+	# print call_list
 
 	# Contact list
 	# print "Contact list:"
@@ -53,13 +53,16 @@ def main():
 	# fb.delete_contact('24')
 
 	# LCD config
-	lcd_config = fb.get_lcd_config()
-	print lcd_config
+	# lcd_config = fb.get_lcd_config()
+	# print lcd_config
 
-	#LCD update config
-	print fb.update_lcd_config(orientation=1)
-	time.sleep(3)
-	print fb.update_lcd_config(orientation=0)
+	# LCD update config
+	# print fb.update_lcd_config(orientation=1)
+	# time.sleep(3)
+	# print fb.update_lcd_config(orientation=0)
+
+	fb.reboot()
+
 
 if __name__ == '__main__':
 	main()

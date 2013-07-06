@@ -26,6 +26,8 @@ CALL_LOG       = 'call/log/'
 
 LCD            = 'lcd/config/'
 
+REBOOT         = "system/reboot/"
+
 
 class freebox():
 
@@ -57,7 +59,7 @@ class freebox():
 		authorization_reponse = self._request_to_freebox(self._base_url + LOGIN_AUTH, 'POST', parameter)
 
 		if (authorization_reponse["success"] is not True):
-			return 1
+			return None
 
 		track_id = str(authorization_reponse["result"]["track_id"])
 
@@ -68,13 +70,14 @@ class freebox():
 			time.sleep(1)
 
 		if not authorization["result"]["status"] == "granted":
-			return 1
+			return None
 
 		file_app_tocken = open(APP_TOKEN_FILE, 'w')
 		file_app_tocken.write(authorization_reponse["result"]["app_token"])
 		file_app_tocken.close()
 		self._app_tocken = str(authorization_reponse["result"]["app_token"])
-		return 0
+
+		return self._app_tocken
 
 	def login(self, app_id):
 		"""
@@ -82,8 +85,8 @@ class freebox():
 		"""
 		login_response = self._request_to_freebox(self._base_url + LOGIN, 'GET')
 
-		if login_response["success"] is not True:
-			return 1
+		if login_response["success"] is False:
+			return False
 
 		challenge = login_response["result"]["challenge"]
 
@@ -95,12 +98,10 @@ class freebox():
 
 		if login_response["success"] is True:
 			self._session_tocken = login_response["result"]["session_token"]
-		else:
-			print login_response["msg"] + " : " + login_response["error_code"]
-			return 1
 
-		return 0
+		return True
 
+	################################# CONTACT #################################
 	def get_call_list(self):
 		"""
 			Access the Freebox call logs.
@@ -108,6 +109,7 @@ class freebox():
 		"""
 		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET')
 		return call_list
+	###########################################################################
 
 	################################# CONTACT #################################
 	def get_contact_list(self):
@@ -127,9 +129,11 @@ class freebox():
 	def delete_contact(self, contact_id):
 		delete_contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
 		return delete_contact
+
 	###########################################################################
 
 	################################# LCD #####################################
+
 	def get_lcd_config(self):
 		lcd_config = self._request_to_freebox(self._base_url + LCD, 'GET')
 		return lcd_config
@@ -138,6 +142,7 @@ class freebox():
 		parameter = {'brightness': brightness, 'orientation': orientation, 'orientation_forced': orientation_forced}
 		update_lcd_config_response = self._request_to_freebox(self._base_url + LCD, 'POST', parameters=parameter)
 		return update_lcd_config_response
+
 	###########################################################################
 
 	def _request_to_freebox(self, url, requestType, parameters=None):
@@ -147,24 +152,32 @@ class freebox():
 		if (requestType == 'POST'):
 			parameters = json.dumps(parameters)
 			response = requests.post(url, data=parameters, headers=header)
-		return response.json()
+
+		response = response.json()
+		if response["success"] is False:
+			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
+
+		return response
+
+	def reboot(self):
+		self._request_to_freebox(self._base_url + REBOOT, 'POST')
 
 	@property
 	def device_name(self):
-		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['device_name']
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['device_name']
 
 	@property
 	def uid(self):
-		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['uid']
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['uid']
 
 	@property
 	def api_version(self):
-		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['api_version']
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['api_version']
 
 	@property
 	def device_type(self):
-		version = self._request_to_freebox(FREEBOX_URL + API_VERSION, 'GET')
-		return version['device_type']
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['device_type']

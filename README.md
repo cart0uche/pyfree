@@ -1,2 +1,2 @@
-pyFree
+pyfree
 ======

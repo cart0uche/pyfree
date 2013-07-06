@@ -86,7 +86,7 @@ class freebox():
 		login_response = self._request_to_freebox(self._base_url + LOGIN, 'GET')
 
 		if login_response["success"] is False:
-			return False
+			return None
 
 		challenge = login_response["result"]["challenge"]
 
@@ -99,7 +99,7 @@ class freebox():
 		if login_response["success"] is True:
 			self._session_tocken = login_response["result"]["session_token"]
 
-		return True
+		return self._session_tocken
 
 	################################# CONTACT #################################
 	def get_call_list(self):

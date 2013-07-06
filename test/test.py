@@ -25,7 +25,7 @@ def main():
 			exit()
 
 	# Login
-	if fb.login("1"):
+	if fb.login("1") is not None:
 		print 'Login successful'
 	else:
 		print 'Login faild'

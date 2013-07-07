@@ -1,11 +1,11 @@
 import time
 import sys
 sys.path.append('..')
-from pyfree import freebox
+from pyfree import Freebox
 
 
 def main():
-	fb = freebox()
+	fb = Freebox()
 	print '====================================='
 	print 'Device name = ' + fb.device_name
 	print 'api_version = ' + fb.api_version

@@ -29,13 +29,11 @@ LCD            = 'lcd/config/'
 REBOOT         = "system/reboot/"
 
 
-class freebox():
+class Freebox():
 
 	def __init__(self):
 		if os.path.isfile(APP_TOKEN_FILE):
-			file_app_tocken = open(APP_TOKEN_FILE, 'r')
-			self._app_tocken = file_app_tocken.read()
-			file_app_tocken.close()
+			self._app_tocken = open(APP_TOKEN_FILE, 'r').read()
 
 		version = str(self.api_version.find('.'))
 		self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
@@ -44,10 +42,7 @@ class freebox():
 		"""
 			Return True if an authorization has already been granted on the freebox
 		"""
-		if os.path.isfile(APP_TOKEN_FILE):
-			return True
-		else:
-			return False
+		return True if os.path.isfile(APP_TOKEN_FILE) else False
 
 	def ask_authorization(self, app_id, app_name, app_version, device_name):
 		"""
@@ -69,15 +64,12 @@ class freebox():
 				break
 			time.sleep(1)
 
-		if not authorization["result"]["status"] == "granted":
+		if authorization["result"]["status"] == "granted":
+			self._app_tocken = str(authorization_reponse["result"]["app_token"])
+			open(APP_TOKEN_FILE, 'w').write(self._app_tocken)
+			return self._app_tocken
+		else:
 			return None
-
-		file_app_tocken = open(APP_TOKEN_FILE, 'w')
-		file_app_tocken.write(authorization_reponse["result"]["app_token"])
-		file_app_tocken.close()
-		self._app_tocken = str(authorization_reponse["result"]["app_token"])
-
-		return self._app_tocken
 
 	def login(self, app_id):
 		"""
@@ -97,11 +89,12 @@ class freebox():
 		login_response = self._request_to_freebox(self._base_url + LOGIN_SESSION, 'POST', parameter)
 
 		if login_response["success"] is True:
-			self._session_tocken = login_response["result"]["session_token"]
+			self._session_tocken = str(login_response["result"]["session_token"])
 
 		return self._session_tocken
 
-	################################# CONTACT #################################
+	##########################################################################
+
 	def get_call_list(self):
 		"""
 			Access the Freebox call logs.
@@ -109,9 +102,9 @@ class freebox():
 		"""
 		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET')
 		return call_list
-	###########################################################################
 
-	################################# CONTACT #################################
+	##########################################################################
+
 	def get_contact_list(self):
 		parameter = {"start": 1, "limit": 4, "group_id": 1}
 		contact_list = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter)
@@ -130,9 +123,7 @@ class freebox():
 		delete_contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
 		return delete_contact
 
-	###########################################################################
-
-	################################# LCD #####################################
+	##########################################################################
 
 	def get_lcd_config(self):
 		lcd_config = self._request_to_freebox(self._base_url + LCD, 'GET')
@@ -150,8 +141,7 @@ class freebox():
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header).json()
 		if (requestType == 'POST'):
-			parameters = json.dumps(parameters)
-			response = requests.post(url, data=parameters, headers=header).json()
+			response = requests.post(url, data=json.dumps(parameters), headers=header).json()
 
 		if response["success"] is False:
 			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')

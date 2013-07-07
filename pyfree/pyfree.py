@@ -40,7 +40,7 @@ class Freebox():
 
 	def is_authorization_granted(self):
 		"""
-			Return True if an authorization has already been granted on the freebox
+			Return True if an authorization has already been granted on the freebox.
 		"""
 		return True if os.path.isfile(APP_TOKEN_FILE) else False
 
@@ -106,37 +106,118 @@ class Freebox():
 	##########################################################################
 
 	def get_contact_list(self):
+		"""
+			Get list of contacts.
+			See http://dev.freebox.fr/sdk/os/contacts/
+		"""
 		parameter = {"start": 1, "limit": 4, "group_id": 1}
 		contact_list = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter)
 		return contact_list
 
 	def get_contact(self, contact_id):
+		"""
+			Access a given contact entry.
+			See http://dev.freebox.fr/sdk/os/contacts/
+		"""
 		contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
 		return contact
 
 	def create_contact(self, display_name=None, first_name=None, last_name=None):
+		"""
+			Create a contact.
+			See http://dev.freebox.fr/sdk/os/contacts/
+		"""
 		parameter = {'display_name': display_name, 'first_name': first_name, 'last_name': last_name}
 		create_contact_response = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter)
 		return create_contact_response
 
 	def delete_contact(self, contact_id):
+		"""
+			Delete a contact.
+			See http://dev.freebox.fr/sdk/os/contacts/
+		"""
 		delete_contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
 		return delete_contact
 
 	##########################################################################
 
 	def get_lcd_config(self):
+		"""
+			Get the current LCD configuration.
+			See http://dev.freebox.fr/sdk/os/lcd/
+		"""
 		lcd_config = self._request_to_freebox(self._base_url + LCD, 'GET')
 		return lcd_config
 
 	def update_lcd_config(self, brightness=None, orientation=None, orientation_forced=None):
+		"""
+			Update the current LCD configuration.
+			See http://dev.freebox.fr/sdk/os/lcd/
+		"""
 		parameter = {'brightness': brightness, 'orientation': orientation, 'orientation_forced': orientation_forced}
 		update_lcd_config_response = self._request_to_freebox(self._base_url + LCD, 'POST', parameters=parameter)
 		return update_lcd_config_response
 
 	###########################################################################
 
+	def reboot(self):
+		"""
+			Update the current LCD configuration.
+			See http://dev.freebox.fr/sdk/os/lcd/
+			Does not work, API has insufficient rights.
+		"""
+		# Cette application n'est pas autorisée à accéder à cette fonction : insufficient_rights
+		self._request_to_freebox(self._base_url + REBOOT, 'POST')
+
+	###########################################################################
+
+	@property
+	def device_name(self):
+		"""
+			The device name "Freebox Server".
+		"""
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['device_name']
+
+	@property
+	def uid(self):
+		"""
+			The device unique id.
+		"""
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['uid']
+
+	@property
+	def api_version(self):
+		"""
+			The current API version on the Freebox.
+		"""
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['api_version']
+
+	@property
+	def device_type(self):
+		"""
+			“FreeboxServer1,1” for the Freebox Server revision 1,1
+		"""
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['device_type']
+
+	@property
+	def api_base_url(self):
+		"""
+			The API root path on the HTTP server.
+		"""
+		version = requests.get(FREEBOX_URL + API_VERSION)
+		return version.json()['api_base_url']
+
+	###########################################################################
+
 	def _request_to_freebox(self, url, requestType, parameters=None):
+		"""
+			Update the current LCD configuration.
+			See http://dev.freebox.fr/sdk/os/lcd/
+		"""
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header).json()
@@ -147,26 +228,3 @@ class Freebox():
 			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
 
 		return response
-
-	def reboot(self):
-		self._request_to_freebox(self._base_url + REBOOT, 'POST')
-
-	@property
-	def device_name(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['device_name']
-
-	@property
-	def uid(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['uid']
-
-	@property
-	def api_version(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['api_version']
-
-	@property
-	def device_type(self):
-		version = requests.get(FREEBOX_URL + API_VERSION)
-		return version.json()['device_type']

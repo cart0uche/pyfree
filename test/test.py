@@ -7,10 +7,11 @@ from pyfree import Freebox
 def main():
 	fb = Freebox()
 	print '====================================='
-	print 'Device name = ' + fb.device_name
-	print 'api_version = ' + fb.api_version
-	print 'device_type = ' + fb.device_type
-	print 'uid         = ' + fb.uid
+	print 'device name  = ' + fb.device_name
+	print 'api_version  = ' + fb.api_version
+	print 'device_type  = ' + fb.device_type
+	print 'uid          = ' + fb.uid
+	print 'api_base_url = ' + fb.api_base_url
 	print '====================================='
 
 	# Authorization
@@ -61,7 +62,7 @@ def main():
 	# time.sleep(3)
 	# print fb.update_lcd_config(orientation=0)
 
-	fb.reboot()
+	# fb.reboot()
 
 
 if __name__ == '__main__':

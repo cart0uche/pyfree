@@ -213,10 +213,6 @@ class Freebox():
 	###########################################################################
 
 	def _request_to_freebox(self, url, requestType, parameters=None):
-		"""
-			Update the current LCD configuration.
-			See http://dev.freebox.fr/sdk/os/lcd/
-		"""
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header).json()

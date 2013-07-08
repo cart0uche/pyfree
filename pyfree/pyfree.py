@@ -162,8 +162,7 @@ class Freebox():
 
 	def reboot(self):
 		"""
-			Update the current LCD configuration.
-			See http://dev.freebox.fr/sdk/os/lcd/
+			Reboot the freebox.
 			Does not work, API has insufficient rights.
 		"""
 		# Cette application n'est pas autorisée à accéder à cette fonction : insufficient_rights

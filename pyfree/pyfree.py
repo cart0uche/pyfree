@@ -31,18 +31,21 @@ LCD            = 'lcd/config/'
 REBOOT         = 'system/reboot/'
 
 LIST_FILE      = 'fs/ls/'
-
 DOWNLOAD_FILE  = 'dl/'
 
 
 class Freebox():
 
-	def __init__(self):
+	def __init__(self, freebox_ip=None, freebox_port=None):
 		if os.path.isfile(APP_TOKEN_FILE):
 			self._app_tocken = open(APP_TOKEN_FILE, 'r').read()
 
 		version = str(self.api_version.find('.'))
-		self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+		if freebox_port is not None and freebox_ip is not None:
+			self._base_url = 'http://' + freebox_ip + ':' + freebox_port + '/' + API_BASE_URL + 'v' + version + '/'
+		else:
+			self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+		print 'freebox url = ' + self._base_url
 
 	def is_authorization_granted(self):
 		"""

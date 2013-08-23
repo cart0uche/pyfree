@@ -3,11 +3,13 @@
 # pyfree!
 
 import os
+import datetime
 import time
 import requests
 import json
 import hmac
 from hashlib import sha1
+import base64
 
 
 APP_TOKEN_FILE = '.app_token'
@@ -26,7 +28,11 @@ CALL_LOG       = 'call/log/'
 
 LCD            = 'lcd/config/'
 
-REBOOT         = "system/reboot/"
+REBOOT         = 'system/reboot/'
+
+LIST_FILE      = 'fs/ls/'
+
+DOWNLOAD_FILE  = 'dl/'
 
 
 class Freebox():
@@ -103,6 +109,31 @@ class Freebox():
 		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET')
 		return call_list
 
+	def _is_calling_today(self, timestamp):
+		if str(datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')) == str(datetime.date.today()):
+			return True
+		else:
+			return False
+
+	def get_missed_call(self, today=False, convert_date=True):
+		"""
+			Return missing call generator.
+			See http://dev.freebox.fr/sdk/os/call/
+		"""
+		missed_call = []
+		call_list = self.get_call_list()
+
+		if call_list["success"] is False:
+			return missed_call
+
+		for call in call_list["result"]:
+			if ((self._is_calling_today(call["datetime"]) is True) and call["type"] == "missed"):
+				if convert_date is True:
+					call["datetime"] = str(datetime.datetime.fromtimestamp(call["datetime"]).strftime('%H:%M:%S - %d/%m/%Y'))
+				missed_call.append(call)
+
+		return missed_call
+
 	##########################################################################
 
 	def get_contact_list(self):
@@ -162,11 +193,31 @@ class Freebox():
 
 	def reboot(self):
 		"""
-			Reboot the freebox.
+			Update the current LCD configuration.
+			See http://dev.freebox.fr/sdk/os/lcd/
 			Does not work, API has insufficient rights.
 		"""
 		# Cette application n'est pas autorisée à accéder à cette fonction : insufficient_rights
 		self._request_to_freebox(self._base_url + REBOOT, 'POST')
+
+	###########################################################################
+
+	def get_file_list(self, directory):
+		"""
+			Get a list of files from a specific directory.
+			See http://dev.freebox.fr/sdk/os/fs/#list-files
+		"""
+		# parameter = {'onlyFolder': False, 'countSubFolder': False, 'removeHidden': True}
+		file_list = self._request_to_freebox(self._base_url + LIST_FILE + base64.b64encode(directory), 'GET')
+		return file_list
+
+	def download_file(self, file_path_b64, file_path_save):
+		"""
+			Dowload file 'file_path_b64' and save it at 'file_path_save'
+			See http://dev.freebox.fr/sdk/os/fs/#download-a-file
+		"""
+		result = self._request_to_freebox(self._base_url + DOWNLOAD_FILE + file_path_b64, 'GET', is_response_json=False)
+		open(file_path_save, 'w').write(result.content)
 
 	###########################################################################
 
@@ -212,14 +263,17 @@ class Freebox():
 
 	###########################################################################
 
-	def _request_to_freebox(self, url, requestType, parameters=None):
+	def _request_to_freebox(self, url, requestType, parameters=None, is_response_json=True):
+		print '--> ' + url
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
-			response = requests.get(url, headers=header).json()
+			response = requests.get(url, headers=header)
 		if (requestType == 'POST'):
-			response = requests.post(url, data=json.dumps(parameters), headers=header).json()
+			response = requests.post(url, data=json.dumps(parameters), headers=header)
 
-		if response["success"] is False:
-			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
+		if is_response_json is True:
+			response = response.json()
+			if response["success"] is False:
+				print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
 
 		return response

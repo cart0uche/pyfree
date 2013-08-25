@@ -1,7 +1,11 @@
-import time
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 sys.path.append('..')
 from pyfree import Freebox
+
+BYTE_PER_MO = 1048576
 
 
 def main():
@@ -64,6 +68,20 @@ def main():
 
 	# fb.reboot()
 
+	# missed_calls = fb.get_missed_call(today=True)
+	# print str(len(missed_calls)) + " missed call found"
+	# for call in missed_calls:
+	# 	print call["number"] + " @ " + str(call["datetime"])
+
+	# Get file list in directory 'Vidéo'
+	file_list = fb.get_file_list('/Disque dur/Vidéos/')
+	for file in file_list['result']:
+		print file['name'] + ' ' + str(file['size']/BYTE_PER_MO) + 'Mo'
+
+	# Download file video-2012-05-20-17-12-55.mp4
+	for file in file_list['result']:
+		if file['name'] == 'video-2012-05-20-17-12-55.mp4':
+			fb.download_file(file['path'], file['name'])
 
 if __name__ == '__main__':
 	main()

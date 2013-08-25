@@ -3,16 +3,19 @@
 # pyfree!
 
 import os
+import datetime
 import time
 import requests
 import json
 import hmac
 from hashlib import sha1
+import base64
 
 
 APP_TOKEN_FILE = '.app_token'
 
-FREEBOX_URL    = 'http://mafreebox.freebox.fr/'
+LOCAL_FREEBOX_URL = 'http://mafreebox.freebox.fr/'
+
 API_VERSION    = 'api_version'
 API_BASE_URL   = 'api/'
 
@@ -26,17 +29,30 @@ CALL_LOG       = 'call/log/'
 
 LCD            = 'lcd/config/'
 
-REBOOT         = "system/reboot/"
+REBOOT         = 'system/reboot/'
+
+LIST_FILE      = 'fs/ls/'
+DOWNLOAD_FILE  = 'dl/'
 
 
 class Freebox():
 
-	def __init__(self):
+	def __init__(self, freebox_ip=None, freebox_port=None):
 		if os.path.isfile(APP_TOKEN_FILE):
 			self._app_tocken = open(APP_TOKEN_FILE, 'r').read()
 
+		if freebox_port is not None and freebox_ip is not None:
+			self._freebox_url = 'http://' + freebox_ip + ':' + freebox_port + '/'
+		else:
+			self._freebox_url = LOCAL_FREEBOX_URL
+
 		version = str(self.api_version.find('.'))
-		self._base_url = FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+		if freebox_port is not None and freebox_ip is not None:
+			self._base_url = 'http://' + freebox_ip + ':' + freebox_port + '/' + API_BASE_URL + 'v' + version + '/'
+		else:
+			self._base_url = LOCAL_FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
+		print 'base url = ' + self._base_url
+		print 'freebox url = ' + self._freebox_url
 
 	def is_authorization_granted(self):
 		"""
@@ -102,6 +118,31 @@ class Freebox():
 		"""
 		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET')
 		return call_list
+
+	def _is_calling_today(self, timestamp):
+		if str(datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')) == str(datetime.date.today()):
+			return True
+		else:
+			return False
+
+	def get_missed_call(self, today=False, convert_date=True):
+		"""
+			Return missing call generator.
+			See http://dev.freebox.fr/sdk/os/call/
+		"""
+		missed_call = []
+		call_list = self.get_call_list()
+
+		if call_list["success"] is False:
+			return missed_call
+
+		for call in call_list["result"]:
+			if ((self._is_calling_today(call["datetime"]) is True) and call["type"] == "missed"):
+				if convert_date is True:
+					call["datetime"] = str(datetime.datetime.fromtimestamp(call["datetime"]).strftime('%H:%M:%S - %d/%m/%Y'))
+				missed_call.append(call)
+
+		return missed_call
 
 	##########################################################################
 
@@ -171,12 +212,31 @@ class Freebox():
 
 	###########################################################################
 
+	def get_file_list(self, directory):
+		"""
+			Get a list of files from a specific directory.
+			See http://dev.freebox.fr/sdk/os/fs/#list-files
+		"""
+		# parameter = {'onlyFolder': False, 'countSubFolder': False, 'removeHidden': True}
+		file_list = self._request_to_freebox(self._base_url + LIST_FILE + base64.b64encode(directory), 'GET')
+		return file_list
+
+	def download_file(self, file_path_b64, file_path_save):
+		"""
+			Dowload file 'file_path_b64' and save it at 'file_path_save'
+			See http://dev.freebox.fr/sdk/os/fs/#download-a-file
+		"""
+		result = self._request_to_freebox(self._base_url + DOWNLOAD_FILE + file_path_b64, 'GET', is_response_json=False)
+		open(file_path_save, 'w').write(result.content)
+
+	###########################################################################
+
 	@property
 	def device_name(self):
 		"""
 			The device name "Freebox Server".
 		"""
-		version = requests.get(FREEBOX_URL + API_VERSION)
+		version = requests.get(self._freebox_url + API_VERSION)
 		return version.json()['device_name']
 
 	@property
@@ -184,7 +244,7 @@ class Freebox():
 		"""
 			The device unique id.
 		"""
-		version = requests.get(FREEBOX_URL + API_VERSION)
+		version = requests.get(self._freebox_url + API_VERSION)
 		return version.json()['uid']
 
 	@property
@@ -192,7 +252,7 @@ class Freebox():
 		"""
 			The current API version on the Freebox.
 		"""
-		version = requests.get(FREEBOX_URL + API_VERSION)
+		version = requests.get(self._freebox_url + API_VERSION)
 		return version.json()['api_version']
 
 	@property
@@ -200,7 +260,7 @@ class Freebox():
 		"""
 			“FreeboxServer1,1” for the Freebox Server revision 1,1
 		"""
-		version = requests.get(FREEBOX_URL + API_VERSION)
+		version = requests.get(self._freebox_url + API_VERSION)
 		return version.json()['device_type']
 
 	@property
@@ -208,24 +268,22 @@ class Freebox():
 		"""
 			The API root path on the HTTP server.
 		"""
-		version = requests.get(FREEBOX_URL + API_VERSION)
+		version = requests.get(self._freebox_url + API_VERSION)
 		return version.json()['api_base_url']
 
 	###########################################################################
 
-	def _request_to_freebox(self, url, requestType, parameters=None):
-		"""
-			Update the current LCD configuration.
-			See http://dev.freebox.fr/sdk/os/lcd/
-		"""
-		print url
+	def _request_to_freebox(self, url, requestType, parameters=None, is_response_json=True):
+		print '--> ' + url
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
-			response = requests.get(url, headers=header).json()
+			response = requests.get(url, headers=header)
 		if (requestType == 'POST'):
-			response = requests.post(url, data=json.dumps(parameters), headers=header).json()
+			response = requests.post(url, data=json.dumps(parameters), headers=header)
 
-		if response["success"] is False:
-			print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
+		if is_response_json is True:
+			response = response.json()
+			if response["success"] is False:
+				print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
 
 		return response

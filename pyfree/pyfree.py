@@ -37,7 +37,7 @@ DOWNLOAD_FILE  = 'dl/'
 
 class Freebox():
 
-	def __init__(self, freebox_ip=None, freebox_port=None):
+	def __init__(self, freebox_ip=None, freebox_port=None, debug=False):
 		if os.path.isfile(APP_TOKEN_FILE):
 			self._app_tocken = open(APP_TOKEN_FILE, 'r').read()
 
@@ -51,8 +51,8 @@ class Freebox():
 			self._base_url = 'http://' + freebox_ip + ':' + freebox_port + '/' + API_BASE_URL + 'v' + version + '/'
 		else:
 			self._base_url = LOCAL_FREEBOX_URL + API_BASE_URL + 'v' + version + '/'
-		print 'base url = ' + self._base_url
-		print 'freebox url = ' + self._freebox_url
+
+		self._debug = debug
 
 	def is_authorization_granted(self):
 		"""
@@ -274,7 +274,7 @@ class Freebox():
 	###########################################################################
 
 	def _request_to_freebox(self, url, requestType, parameters=None, is_response_json=True):
-		print '--> ' + url
+		self.print_debug('--> ' + url)
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header)
@@ -284,6 +284,12 @@ class Freebox():
 		if is_response_json is True:
 			response = response.json()
 			if response["success"] is False:
-				print response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
+				print 'Error ' + response["msg"].encode('utf-8') + ' : ' + response["error_code"].encode('utf-8')
 
 		return response
+
+	###########################################################################
+
+	def print_debug(self, message):
+		if self._debug:
+			print message

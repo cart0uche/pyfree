@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+	#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # pyfree!
 
@@ -28,6 +28,8 @@ CONTACT        = 'contact/'
 CALL_LOG       = 'call/log/'
 
 LCD            = 'lcd/config/'
+
+WIFI           = 'wifi/config/'
 
 REBOOT         = 'system/reboot/'
 
@@ -201,11 +203,21 @@ class Freebox():
 
 	###########################################################################
 
+	def set_wifi_status(self, enabled=True):
+		"""
+			Change Wifi status (on/off)
+			See http://dev.freebox.fr/sdk/os/wifi/
+		"""
+		parameter = {"bss": {"perso":{"enabled": enabled}}}
+		parameter = {"ap_params": {"enabled": enabled}}
+		set_wifi_status_response = self._request_to_freebox(self._base_url + WIFI, 'PUT', parameters=parameter)
+		return set_wifi_status_response
+	
+	###########################################################################
+	
 	def reboot(self):
 		"""
-			Update the current LCD configuration.
-			See http://dev.freebox.fr/sdk/os/lcd/
-			Does not work, API has insufficient rights.
+			Reboot Freebox
 		"""
 		# Cette application n'est pas autorisée à accéder à cette fonction : insufficient_rights
 		self._request_to_freebox(self._base_url + REBOOT, 'POST')
@@ -280,6 +292,8 @@ class Freebox():
 			response = requests.get(url, headers=header)
 		if (requestType == 'POST'):
 			response = requests.post(url, data=json.dumps(parameters), headers=header)
+		if (requestType == 'PUT'):
+			response = requests.put(url, data=json.dumps(parameters), headers=header)
 
 		if is_response_json is True:
 			response = response.json()

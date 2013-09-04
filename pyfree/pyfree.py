@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 # pyfree!
 
+"""
+	This API is an unofficial imlplementation of the official Freebox OS API
+	detailed here http://dev.freebox.fr/sdk/os/
+"""
+
 import os
 import datetime
 import time
@@ -122,6 +127,10 @@ class Freebox():
 		return call_list
 
 	def _is_calling_today(self, timestamp):
+		"""
+			Return True if the parameter timestamp occurs today.
+			False otherwise.
+		"""
 		if str(datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')) == str(datetime.date.today()):
 			return True
 		else:
@@ -129,7 +138,7 @@ class Freebox():
 
 	def get_missed_call(self, today=False, convert_date=True):
 		"""
-			Return missing call generator.
+			Return missing calls.
 			See http://dev.freebox.fr/sdk/os/call/
 		"""
 		missed_call = []

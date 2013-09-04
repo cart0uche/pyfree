@@ -1,11 +1,3 @@
-Help on module pyfree:
-
-NAME
-    pyfree
-
-FILE
-    /home/saou/Documents/pyfree/pyfree/pyfree.py
-
 DESCRIPTION
     This API is an unofficial imlplementation of the official Freebox OS API
     detailed here http://dev.freebox.fr/sdk/os/

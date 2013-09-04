@@ -1,8 +1,10 @@
-DESCRIPTION
-    This API is an unofficial imlplementation of the official Freebox OS API
-    detailed here http://dev.freebox.fr/sdk/os/
+__DESCRIPTION__
 
-CLASSES
+This API is an unofficial imlplementation of the official Freebox OS API
+detailed here http://dev.freebox.fr/sdk/os/
+
+__CLASSES__
+
     Freebox
     
     class Freebox

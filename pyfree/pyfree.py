@@ -291,10 +291,8 @@ class Freebox():
 		if (requestType == 'GET'):
 			response = requests.get(url, headers=header)
 		if (requestType == 'POST'):
-			self.print_debug('--> ' + json.dumps(parameters))
 			response = requests.post(url, data=json.dumps(parameters), headers=header)
 		if (requestType == 'PUT'):
-			self.print_debug('--> ' + json.dumps(parameters))
 			response = requests.put(url, data=json.dumps(parameters), headers=header)
 
 		if is_response_json is True:

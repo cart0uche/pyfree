@@ -16,6 +16,10 @@ import hmac
 from hashlib import sha1
 import base64
 
+GET  = 0
+POST = 1
+PUT  = 2
+
 
 APP_TOKEN_FILE = '.app_token'
 
@@ -24,23 +28,31 @@ LOCAL_FREEBOX_URL = 'http://mafreebox.freebox.fr/'
 API_VERSION    = 'api_version'
 API_BASE_URL   = 'api/'
 
-LOGIN          = 'login/'
-LOGIN_AUTH     = 'login/authorize/'
-LOGIN_SESSION  = 'login/session/'
 
-CONTACT        = 'contact/'
 
-CALL_LOG       = 'call/log/'
+api_config = {
+"ask_authorization1": {"path":"login/authorize/", "request_type":POST, "is_response_json":True },
+"ask_authorization2": {"path":"login/authorize/", "request_type":GET , "is_response_json":True },
 
-LCD            = 'lcd/config/'
+"login1"			: {"path":"login/"          , "request_type":GET , "is_response_json":True },
+"login2"			: {"path":"login/session/"  , "request_type":POST, "is_response_json":True },
 
-WIFI           = 'wifi/config/'
+"get_call_list"		: {"path":"call/log/"     	, "request_type":GET , "is_response_json":True },
+"get_contact"		: {"path":"contact/"      	, "request_type":GET , "is_response_json":True },
 
-REBOOT         = 'system/reboot/'
+"create_contact"	: {"path":"contact/"       	, "request_type":POST, "is_response_json":True },
+"delete_contact"	: {"path":"contact/"      	, "request_type":GET , "is_response_json":True },
 
-LIST_FILE      = 'fs/ls/'
-DOWNLOAD_FILE  = 'dl/'
+"get_lcd_config"	: {"path":"lcd/config/"   	, "request_type":GET , "is_response_json":True },
+"update_lcd_config"	: {"path":"lcd/config/"   	, "request_type":POST, "is_response_json":True },
 
+"set_wifi_status"	: {"path":"wifi/config/"  	, "request_type":PUT , "is_response_json":True },
+
+"reboot"			: {"path":"system/reboot/"	, "request_type":POST, "is_response_json":True },
+
+"get_file_list"		: {"path":"fs/ls/"			, "request_type":GET , "is_response_json":True },
+"download_file"		: {"path":"dl/"				, "request_type":GET , "is_response_json":False}
+}
 
 class Freebox():
 
@@ -74,7 +86,7 @@ class Freebox():
 			See http://dev.freebox.fr/sdk/os/login/
 		"""
 		parameter = {"app_id": app_id, "app_name": app_name, "app_version": app_version, "device_name": device_name}
-		authorization_reponse = self._request_to_freebox(self._base_url + LOGIN_AUTH, 'POST', parameter)
+		authorization_reponse = self._request_to_freebox("ask_authorization1", parameters=parameter)
 
 		if (authorization_reponse["success"] is not True):
 			return None
@@ -82,7 +94,7 @@ class Freebox():
 		track_id = str(authorization_reponse["result"]["track_id"])
 
 		while True:
-			authorization = self._request_to_freebox(self._base_url + LOGIN_AUTH + track_id, 'GET')
+			authorization = self._request_to_freebox("ask_authorization2", track_id)
 			if not authorization["result"]["status"] == 'pending':
 				break
 			time.sleep(1)
@@ -98,7 +110,7 @@ class Freebox():
 		"""
 			This function has to be called after the authorization has been granted by the function ask_authorization.
 		"""
-		login_response = self._request_to_freebox(self._base_url + LOGIN, 'GET')
+		login_response = self._request_to_freebox("login1")
 
 		if login_response["success"] is False:
 			return None
@@ -109,7 +121,7 @@ class Freebox():
 		password  = password_bin.hexdigest()
 
 		parameter = {"app_id": app_id, "password": password}
-		login_response = self._request_to_freebox(self._base_url + LOGIN_SESSION, 'POST', parameter)
+		login_response = self._request_to_freebox("login2", parameters=parameter)
 
 		if login_response["success"] is True:
 			self._session_tocken = str(login_response["result"]["session_token"])
@@ -123,7 +135,7 @@ class Freebox():
 			Access the Freebox call logs.
 			See http://dev.freebox.fr/sdk/os/call/
 		"""
-		call_list = self._request_to_freebox(self._base_url + CALL_LOG, 'GET')
+		call_list = self._request_to_freebox("get_call_list")
 		return call_list
 
 	def _is_calling_today(self, timestamp):
@@ -163,7 +175,7 @@ class Freebox():
 			See http://dev.freebox.fr/sdk/os/contacts/
 		"""
 		parameter = {"start": 1, "limit": 4, "group_id": 1}
-		contact_list = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter)
+		contact_list = self._request_to_freebox("get_contact_list", parameters=parameter)
 		return contact_list
 
 	def get_contact(self, contact_id):
@@ -171,7 +183,7 @@ class Freebox():
 			Access a given contact entry.
 			See http://dev.freebox.fr/sdk/os/contacts/
 		"""
-		contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
+		contact = self._request_to_freebox("get_contact", contact_id)
 		return contact
 
 	def create_contact(self, display_name=None, first_name=None, last_name=None):
@@ -180,7 +192,7 @@ class Freebox():
 			See http://dev.freebox.fr/sdk/os/contacts/
 		"""
 		parameter = {'display_name': display_name, 'first_name': first_name, 'last_name': last_name}
-		create_contact_response = self._request_to_freebox(self._base_url + CONTACT, 'POST', parameters=parameter)
+		create_contact_response = self._request_to_freebox("create_contact", parameters=parameter)
 		return create_contact_response
 
 	def delete_contact(self, contact_id):
@@ -188,7 +200,7 @@ class Freebox():
 			Delete a contact.
 			See http://dev.freebox.fr/sdk/os/contacts/
 		"""
-		delete_contact = self._request_to_freebox(self._base_url + CONTACT + contact_id, 'GET')
+		delete_contact = self._request_to_freebox("delete_contact", contact_id)
 		return delete_contact
 
 	##########################################################################
@@ -198,7 +210,7 @@ class Freebox():
 			Get the current LCD configuration.
 			See http://dev.freebox.fr/sdk/os/lcd/
 		"""
-		lcd_config = self._request_to_freebox(self._base_url + LCD, 'GET')
+		lcd_config = self._request_to_freebox("get_lcd_config")
 		return lcd_config
 
 	def update_lcd_config(self, brightness=None, orientation=None, orientation_forced=None):
@@ -207,7 +219,7 @@ class Freebox():
 			See http://dev.freebox.fr/sdk/os/lcd/
 		"""
 		parameter = {'brightness': brightness, 'orientation': orientation, 'orientation_forced': orientation_forced}
-		update_lcd_config_response = self._request_to_freebox(self._base_url + LCD, 'POST', parameters=parameter)
+		update_lcd_config_response = self._request_to_freebox("update_lcd_config", parameters=parameter)
 		return update_lcd_config_response
 
 	###########################################################################
@@ -219,7 +231,7 @@ class Freebox():
 		"""
 		parameter = {"bss": {"perso":{"enabled": enabled}}}
 		parameter = {"ap_params": {"enabled": enabled}}
-		set_wifi_status_response = self._request_to_freebox(self._base_url + WIFI, 'PUT', parameters=parameter)
+		set_wifi_status_response = self._request_to_freebox("set_wifi_status", parameters=parameter)
 		return set_wifi_status_response
 	
 	###########################################################################
@@ -229,7 +241,7 @@ class Freebox():
 			Reboot Freebox
 		"""
 		# Cette application n'est pas autorisée à accéder à cette fonction : insufficient_rights
-		self._request_to_freebox(self._base_url + REBOOT, 'POST')
+		self._request_to_freebox("reboot")
 
 	###########################################################################
 
@@ -239,7 +251,7 @@ class Freebox():
 			See http://dev.freebox.fr/sdk/os/fs/#list-files
 		"""
 		# parameter = {'onlyFolder': False, 'countSubFolder': False, 'removeHidden': True}
-		file_list = self._request_to_freebox(self._base_url + LIST_FILE + base64.b64encode(directory), 'GET')
+		file_list = self._request_to_freebox("get_file_list", base64.b64encode(directory))
 		return file_list
 
 	def download_file(self, file_path_b64, file_path_save):
@@ -247,7 +259,7 @@ class Freebox():
 			Dowload file 'file_path_b64' and save it at 'file_path_save'
 			See http://dev.freebox.fr/sdk/os/fs/#download-a-file
 		"""
-		result = self._request_to_freebox(self._base_url + DOWNLOAD_FILE + file_path_b64, 'GET', is_response_json=False)
+		result = self._request_to_freebox("download_file", file_path_b64)
 		open(file_path_save, 'w').write(result.content)
 
 	###########################################################################
@@ -294,14 +306,19 @@ class Freebox():
 
 	###########################################################################
 
-	def _request_to_freebox(self, url, requestType, parameters=None, is_response_json=True):
+	def _request_to_freebox(self, function_name, url_parameter="", parameters=None):
+		url              = self._base_url + api_config[function_name]["path"] + url_parameter
+		request_type     = api_config[function_name]["request_type"]
+		is_response_json = api_config[function_name]["is_response_json"]
+
 		self.print_debug('--> ' + url)
 		header = {'X-Fbx-App-Auth': self._session_tocken} if hasattr(self, '_session_tocken') else None
-		if (requestType == 'GET'):
+
+		if (request_type == GET):
 			response = requests.get(url, headers=header)
-		if (requestType == 'POST'):
+		if (request_type == POST):
 			response = requests.post(url, data=json.dumps(parameters), headers=header)
-		if (requestType == 'PUT'):
+		if (request_type == PUT):
 			response = requests.put(url, data=json.dumps(parameters), headers=header)
 
 		if is_response_json is True:

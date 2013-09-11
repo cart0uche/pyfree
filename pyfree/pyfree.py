@@ -51,7 +51,8 @@ api_config = {
 "reboot"            : {"path":"system/reboot/"  , "request_type":POST, "is_response_json":True },
 
 "get_file_list"     : {"path":"fs/ls/"          , "request_type":GET , "is_response_json":True },
-"download_file"     : {"path":"dl/"             , "request_type":GET , "is_response_json":False}
+"download_file"     : {"path":"dl/"             , "request_type":GET , "is_response_json":False},
+"move_files"        : {"path":"fs/mv/"          , "request_type":POST, "is_response_json":True }
 }
 
 class Freebox():
@@ -261,6 +262,15 @@ class Freebox():
 		"""
 		result = self._request_to_freebox("download_file", file_path_b64)
 		open(file_path_save, 'w').write(result.content)
+
+	def move_files(self, files_to_move_b64, destination_path_b64):
+		"""
+			Moves files in 'files_to_move_b64' list to 'destination_path_b64' directory
+			See http://dev.freebox.fr/sdk/os/fs/#move-files
+		"""
+		parameter = {'files': files_to_move_b64, 'dct': destination_path_b64, 'mode': "overwrite"}
+		result = self._request_to_freebox("move_files", parameters=parameter)
+		return result
 
 	###########################################################################
 

@@ -68,10 +68,10 @@ def main():
 
 	# fb.reboot()
 
-	# missed_calls = fb.get_missed_call(today=True)
-	# print str(len(missed_calls)) + " missed call found"
-	# for call in missed_calls:
-	# 	print call["number"] + " @ " + str(call["datetime"])
+	missed_calls = fb.get_missed_call(today=True)
+	print str(len(missed_calls)) + " missed call found"
+	for call in missed_calls:
+		print call["number"] + " @ " + str(call["datetime"])
 
 	# Get file list in directory 'Vidéo'
 	file_list = fb.get_file_list('/Disque dur/Vidéos/')

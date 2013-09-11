@@ -34,24 +34,24 @@ api_config = {
 "ask_authorization1": {"path":"login/authorize/", "request_type":POST, "is_response_json":True },
 "ask_authorization2": {"path":"login/authorize/", "request_type":GET , "is_response_json":True },
 
-"login1"			: {"path":"login/"          , "request_type":GET , "is_response_json":True },
-"login2"			: {"path":"login/session/"  , "request_type":POST, "is_response_json":True },
+"login1"            : {"path":"login/"          , "request_type":GET , "is_response_json":True },
+"login2"            : {"path":"login/session/"  , "request_type":POST, "is_response_json":True },
 
-"get_call_list"		: {"path":"call/log/"     	, "request_type":GET , "is_response_json":True },
-"get_contact"		: {"path":"contact/"      	, "request_type":GET , "is_response_json":True },
+"get_call_list"     : {"path":"call/log/"       , "request_type":GET , "is_response_json":True },
+"get_contact"       : {"path":"contact/"        , "request_type":GET , "is_response_json":True },
 
-"create_contact"	: {"path":"contact/"       	, "request_type":POST, "is_response_json":True },
-"delete_contact"	: {"path":"contact/"      	, "request_type":GET , "is_response_json":True },
+"create_contact"    : {"path":"contact/"        , "request_type":POST, "is_response_json":True },
+"delete_contact"    : {"path":"contact/"        , "request_type":GET , "is_response_json":True },
 
-"get_lcd_config"	: {"path":"lcd/config/"   	, "request_type":GET , "is_response_json":True },
-"update_lcd_config"	: {"path":"lcd/config/"   	, "request_type":POST, "is_response_json":True },
+"get_lcd_config"    : {"path":"lcd/config/"     , "request_type":GET , "is_response_json":True },
+"update_lcd_config" : {"path":"lcd/config/"     , "request_type":POST, "is_response_json":True },
 
-"set_wifi_status"	: {"path":"wifi/config/"  	, "request_type":PUT , "is_response_json":True },
+"set_wifi_status"   : {"path":"wifi/config/"    , "request_type":PUT , "is_response_json":True },
 
-"reboot"			: {"path":"system/reboot/"	, "request_type":POST, "is_response_json":True },
+"reboot"            : {"path":"system/reboot/"  , "request_type":POST, "is_response_json":True },
 
-"get_file_list"		: {"path":"fs/ls/"			, "request_type":GET , "is_response_json":True },
-"download_file"		: {"path":"dl/"				, "request_type":GET , "is_response_json":False}
+"get_file_list"     : {"path":"fs/ls/"          , "request_type":GET , "is_response_json":True },
+"download_file"     : {"path":"dl/"             , "request_type":GET , "is_response_json":False}
 }
 
 class Freebox():

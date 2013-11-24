@@ -230,7 +230,6 @@ class Freebox():
 			Change Wifi status (on/off)
 			See http://dev.freebox.fr/sdk/os/wifi/
 		"""
-		parameter = {"bss": {"perso":{"enabled": enabled}}}
 		parameter = {"ap_params": {"enabled": enabled}}
 		set_wifi_status_response = self._request_to_freebox("set_wifi_status", parameters=parameter)
 		return set_wifi_status_response

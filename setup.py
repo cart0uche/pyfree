@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
 
     # nom
-    author="Hafid Saou",
+    author="cart0uche",
 
     # Une description courte
     description="Unofficial API that implements access to Freebox Server Révolution (http://dev.freebox.fr/sdk/os/)",
